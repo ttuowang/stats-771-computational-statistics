@@ -13,9 +13,10 @@ function singleGradDescent(A,x,b, alpha)
     return x
 end
 
+"""
 # Implement four algorithms one for each of the four strategies of alpha discussed in clss
-
 # Strategy 1, alpha = ||A'r^c||_2^2 / ||AA'r^c||_2^2
+"""
 function gradientDescent1(A,x,b, xreal;alpha_strategy = 1,ϵ = 1e-15,maxIter=1000)
     k = 1
     r_c = A*x - b
@@ -46,7 +47,9 @@ println(norm(x_hat-x))
 using PyPlot
 plot(1:iter, res, "b-")
 
+"""
 # Strategy 2,  alpha = ||A'(x_k - x^*)||_2^2 / ||AA'(x_k - x^*)||_2^2
+"""
 function gradientDescent2(A,x,b, xreal;alpha_strategy = 1,ϵ = 1e-15,maxIter=1000)
     k = 1
     d_c = x - xreal
@@ -68,12 +71,50 @@ println(norm(x_hat-x))
 using PyPlot
 plot(1:iter, res, "b-")
 
+"""
+# Strategy 3,  alpha = 2/(sigma(AA^T)_min^2 + sigma(AA^T)_max^2)
+"""
+function gradientDescent2(A,x,b, xreal;alpha_strategy = 1,ϵ = 1e-15,maxIter=1000)
+    k = 1
+    d_c = x - xreal
+    r = norm(d_c)
+    while norm(d_c) >= ϵ && k <= maxIter
+        F = svd(A*A');
+        alpha = 2 / (maximum(F.S)^2 + minimum(F.S)^2)
+        x = singleGradDescent(A,x,b,alpha)
+        d_c = x - xreal
+        k = k+1
+        r = vcat(r, norm(d_c))
+    end
+    return x, r, k
+end
+
+"""
+# Strategy 4,  alpha = 2/(sigma(A^TA)_min^2 + sigma(A^TA)_max^2)
+"""
+function gradientDescent2(A,x,b, xreal;alpha_strategy = 1,ϵ = 1e-15,maxIter=1000)
+    k = 1
+    d_c = x - xreal
+    r = norm(d_c)
+    while norm(d_c) >= ϵ && k <= maxIter
+        F = svd(A'*A);
+        alpha = 2 / (maximum(F.S)^2 + minimum(F.S)^2)
+        x = singleGradDescent(A,x,b,alpha)
+        d_c = x - xreal
+        k = k+1
+        r = vcat(r, norm(d_c))
+    end
+    return x, r, k
+end
+
 ################################################################################
 ################################################################################
 ################################################################################
 
+"""
 # Write a function to generate 2 equations with 2 unknowns such that the
 # coefficient matrix is dense and symmetric with user specified non-zero eigenvalues
+"""
 function generateProblem2(eigenval)
     n = length(eigenval)
     B = rand(n,n)
